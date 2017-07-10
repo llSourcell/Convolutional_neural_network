@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<style>
+
+    html, body {
+        width: 100%;
+        height: 100%;
+    }
+
+    #sketch {
+        border: 5px solid black;
+        height: 200px;
+        width: 200px;
+        position: relative;
+    }
+
+    #tmp_canvas {
+        position: absolute;
+        left: 0px; right: 0;
+        bottom: 0; top: 0;
+        cursor: crosshair;
+    }
+</style>
+
+<h1><b>Pythonic OCR</b>: Fun with Convolutional Neural Nets</h1>
+
+<br>
+
+<div class="sechighlight">
+<div class="container sec">
+  <h2>Introduction</h2>
+
+  <div id="coursedesc">
+Convolutional neural networks attain <a target="_blank" href="http://arxiv.org/pdf/1409.4842v1.pdf">state of the art</a> performance in computer vision. They do this by analyzing the pixels in images in the <a target="_blank" href="http://papers.nips.cc/paper/4991-hierarchical-modular-optimization-of-convolutional-networks-achieves-representations-similar-to-macaque-it-and-human-ventral-stream.pdf">same way</a> as the human visual system. The network I built is made up of several simpler layers ‘stacked’ on top of each other: this means that it is a form of <a target="_blank" href="https://en.wikipedia.org/wiki/Deep_learning">deep learning</a>. I trained the network using Keras and then rewrote it in <a target="_blank" href="http://www.numpy.org/">numpy</a> so it could run as a demo.
+  </div>
+</div>
+</div>
+
+<center>
+    <div class="project_demo">
+        <h4 id="prompt">Enter any alphanumeric character</h4>
+        <div id="sketch">
+            <canvas id="paint"></canvas>
+        </div>
+        <br>
+        <button type="button" onclick="clearDrawing()">Clear</button>
+        <button type="button" onclick="submitDrawing()">Submit</button>
+        <br>
+        <h3 id="result"></h3>
+    </div>
+</center>
+
+<div class="maintext">
+
+    <h3> Background </h3>
+    <p>
+        To understand convolutional neural networks (CNNs), you must first understand convolution. Wikipedia gives a good mathematical definition <a target="_blank" href="https://en.wikipedia.org/wiki/Convolution">here</a>.
+    </p>
+    <p>
+        To get a physical intuition of discrete 2D convolution (the kind I use in this project), imagine
+        <ol>
+            <li>an image</li>
+            <li>a small patch of random pixels</li>
+        </ol>
+        When we convolve the two, we ‘smear’ the image’s pixels around using the patch. Different patch patterns will create different smears. Some of these smears will highlight particular features of the image such as horizontal lines or edges.
+    </p>
+    <p>
+        In a convolutional neural network, each patch represents a different type of neuron in the human visual system. A convolutional neural net, in fact, is just like a regular neural net but each neuron acts on the entire image space (<a target="_blank" href="https://www.quora.com/What-is-a-convolutional-neural-network">more</a> and <a target="_blank" href="http://deeplearning.net/tutorial/lenet.html">even more</a>). These nets were invented in 1989 by <a target="_blank" href="http://yann.lecun.com/exdb/publis/pdf/lecun-89e.pdf">Yann LeCun</a>.
+    </p>
+    <p>
+        In the past few years, computers and training methods have become powerful enough to enable anyone (even me) to build and train these networks; this has resulted in a massive resurgence of interest. I started with the Keras MNIST convolutional neural net <a target="_blank" href="https://github.com/fchollet/keras/blob/master/examples/mnist_cnn.py">example</a> and made modifications to create this project.
+
+    </p>
+
+    <h3> How it works </h3>
+    <p>
+        Let’s take a closer look. Convolution is defined as
+
+        $$ (f * g )(t) = \int_{0}^{t} f(\tau)\, g(t - \tau)\, d\tau\ \mathrm{for} \ \ f, g : [0, \infty) \to \mathbb{R} $$
+
+        where \( (f * g )(t) \) represents the convolution of \(f\) on \(g\). The discrete analog is
+
+        $$ (f * g)[n]\ \stackrel{\mathrm{def}}{=}\ \sum_{m=-\infty}^\infty f[m]\, g[n - m] $$
+
+        At first, I implemented convolution using a \(\mathrm{for}\) loop, but for <i>many</i> convolutions, this approach is too slow. Fortunately, convolution can be performed much more efficiently if you first take a fast fourier transform (fft). Python’s numpy library has a built-in fft function, so we can actually perform convolution in just two lines:
+    </p>
+    <div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">freq_result = np.fft.fft2(image, target_dim) * np.fft.fft2(patch, target_dim)</span><span class="c">   #frequency domain </span>
+<span class="n">spatial_result = np.fft.ifft2(fft_result).real</span><span class="c">   #go back to spatial domain</span></code></pre></div>
+
+    <p>
+        This method is at least an order of magnitude faster for my project!
+    </p>
+
+    <p>
+        The 2D convolution is only half of the picture. For every convolution layer, there is a pooling layer. The responsibility of the pooling layer is to combine different convolutions to create a 'image' of features that can be fed into the next convolution layer. I used <a target="_blank" href="https://www.quora.com/Deep-Learning/How-do-I-do-max-pooling">max pooling</a> for the demo.
+    </p>
+
+    <p>
+        The first part of my model has two convolution layers and two pooling layers. These layers extract high-level image features. On top of these layers are two regular old <a target="_blank" href="http://keras.io/layers/core/#dense">dense</a> neural networks (with dropout) to handle classification. I used Keras to build and train the entire model.
+    </p>
+    <p>
+        Keras's backends compile everything in C++. I did not want my demo to do this, so I rewrote the network in numpy. While not especially scalable or modular, my reimplementation allows me to run my CNN as a demo on this page!
+    </p>
+    <p>
+        A non-trivial part of machine learning is building a good database. I created my own miniature dataset of 3,000 samples. I resized, desaturated, cropped, and centered every input around 0 with stdev \(\sigma=1\). I made a separate <code>preprocessor</code> class to handle these processes.
+    </p>
+    <p>
+        With a train=0.9 and valid+test=0.1 I was getting about 99% accuracy. There are a few extras: try drawing a 5-pointed star or a smiley face! Another of these extras is a category called ‘scribble.’ Basically, anything that did not fit well into the other categories is supposed to be classified as a scribble.
+    </p>
+
+    <h3> Discussion </h3>
+    <p>
+        Convolutional neural nets are very powerful. This network performed well on a dataset without any hand-engineered features. Furthermore, the small ‘scribble detector’ innovation I added to the dataset worked quite well.
+    </p>
+    <p>
+        One problem is that I used an existing deep architecture along with the preset hyperparameters. Choosing a model and setting correct hyperparameters is half the challenge in deep learning, so in the future this is something I will focus on.
+    </p>
+</div>
+
+<div class="sechighlight">
+<div id="footer">
+Finished November 20, 2015
+</div>
+</div>
+
+<script type="text/javascript" src="static/js/ocr_canvas.js"></script>
+
+{% endblock %}
