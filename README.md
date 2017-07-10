@@ -1,13 +1,13 @@
-#Pythonic OCR
-
-Live web app is here:
-[Website](https://pythonic-ocr.herokuapp.com/)
+#Convolutional Neural Network
 
 ## Overview
 
 This is the code for [this](https://youtu.be/FTr3n7uBIuE) video on Youtube by Siraj Raval as part of The Math of Intelligence course. A convolutional neural network implemented in pure numpy. It uses a MNIST-like dataset with about 30 alphanumeric symbols. The author trained a deep convolutional network using Keras and saved the weights using python's pickle utility. Only the the forward propagation code is rewritten in pure numpy (as opposed to Theano or Tensorflow as in Keras). Which lets us run the network as a demo via heroku. For backpropagation in numpy for a convnet see [this](https://github.com/Kankroc/NaiveCNN)
 
 ![recognized_o.png](https://github.com/greydanus/pythonic_ocr/blob/master/app/static/img/recognized_o.png) ![recognized_q.png](https://github.com/greydanus/pythonic_ocr/blob/master/app/static/img/recognized_q.png)
+
+Live web app is here:
+[Website](https://pythonic-ocr.herokuapp.com/)
 
 
 ## Dependencies
