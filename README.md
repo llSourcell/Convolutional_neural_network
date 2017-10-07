@@ -29,3 +29,4 @@ Install jupyter [here](http://jupyter.readthedocs.io/en/latest/install.html).
 
 Credits for this code go to [greydanus](https://github.com/greydanus/pythonic_ocr). I've merely created a wrapper to get people started. 
 
+Your Rock!!
