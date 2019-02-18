@@ -4,7 +4,7 @@ from app.model.preprocessor import Preprocessor as img_prep
 
 class LiteOCR:
 	def __init__(self, fn="alpha_weights.pkl", pool_size=2):
-		[weights, meta] = pickle.load(open(fn, 'rb'), encoding='latin1') #currently, this class MUST be initialized from a pickle file
+		[weights, meta] = pickle.load(open(fn, 'rb')) #currently, this class MUST be initialized from a pickle file
 		self.vocab = meta["vocab"]
 
 		self.img_rows = meta["img_side"] ; self.img_cols = meta["img_side"]
